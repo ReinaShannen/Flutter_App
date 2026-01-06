@@ -1,13 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+
 import 'firebase_options.dart';
+import 'routes/app_routes.dart';
+
+// ViewModels
+import 'viewmodel/user_viewmodel.dart';
+import 'viewmodel/auth_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+
+  runApp(
+    MultiProvider(
+      providers: [
+        // 🔹 User CRUD ViewModel
+        ChangeNotifierProvider(
+          create: (_) => UserViewModel(),
+        ),
+
+        // 🔹 Auth (Login / Register) ViewModel
+        ChangeNotifierProvider(
+          create: (_) => AuthViewModel(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,11 +38,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(child: Text("Firebase Connected")),
-      ),
+      title: 'User Profile Management App',
+      initialRoute: AppRoutes.splash,
+      routes: AppRoutes.routes,
     );
   }
 }
