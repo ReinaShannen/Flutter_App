@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: Color.fromARGB(255, 10, 0, 24),
                           ),
                         ),
                       ),
@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontSize: 15,
                             height: 1.4,
-                            color: Colors.white70,
+                            color: Color.fromARGB(179, 16, 1, 1),
                           ),
                         ),
                       ),
@@ -177,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         'Secure • Fast • Firebase Auth',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.white60,
+                          color: Color.fromARGB(153, 10, 0, 0),
                         ),
                       ),
                     ),
@@ -209,12 +209,12 @@ class FeatureItem extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, color: Colors.white, size: 20),
+        Icon(icon, color: const Color.fromARGB(255, 18, 1, 1), size: 20),
         const SizedBox(width: 10),
         Text(
           text,
           style: const TextStyle(
-            color: Colors.white70,
+            color: Color.fromARGB(179, 19, 0, 0),
             fontSize: 14,
           ),
         ),

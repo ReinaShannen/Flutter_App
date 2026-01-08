@@ -1,29 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../core/services/api_service.dart';
 import '../../model/user_model.dart';
-import '../../core/services/api_service.dart';
 
 class UserViewModel extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiService api;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  UserViewModel(this.api);
 
   bool isLoading = false;
-  List<UserModel> users = [];
 
   // =========================
-  // GET USERS
+  // LOAD USERS (API → Firestore)
   // =========================
   Future<void> loadUsers() async {
     try {
       isLoading = true;
       notifyListeners();
 
-      users = await _apiService.request<List<UserModel>>(
-        endpoint: 'users',
-        method: HttpMethod.get,
-        parser: (json) {
-          final List list = json as List;
-          return list.map((e) => UserModel.fromJson(e)).toList();
-        },
-      );
+      debugPrint('Calling API to load users...');
+      final List<UserModel> users = await api.getUsers();
+
+      final batch = _firestore.batch();
+
+      for (var user in users) {
+        final docRef =
+            _firestore.collection('users_cache').doc(user.id.toString());
+
+        batch.set(docRef, user.toJson(), SetOptions(merge: true));
+      }
+
+      await batch.commit();
+      debugPrint('All users saved to Firestore successfully');
     } catch (e) {
       debugPrint('LOAD USERS ERROR: $e');
     } finally {
@@ -37,20 +46,15 @@ class UserViewModel extends ChangeNotifier {
   // =========================
   Future<void> createUser(String name, String email) async {
     try {
-      final newUser = await _apiService.request<UserModel>(
-        endpoint: 'users',
-        method: HttpMethod.post,
-        body: {
-          'name': name,
-          'email': email,
-        },
-        parser: (json) => UserModel.fromJson(json),
-      );
+      final UserModel user = await api.createUser(name, email);
 
-      users.add(newUser);
-      notifyListeners();
+      await _firestore
+          .collection('users_cache')
+          .doc(user.id.toString())
+          .set(user.toJson(), SetOptions(merge: true));
     } catch (e) {
       debugPrint('CREATE USER ERROR: $e');
+      rethrow;
     }
   }
 
@@ -59,24 +63,15 @@ class UserViewModel extends ChangeNotifier {
   // =========================
   Future<void> updateUser(int id, String name, String email) async {
     try {
-      await _apiService.request<void>(
-        endpoint: 'users/$id',
-        method: HttpMethod.put,
-        body: {
-          'name': name,
-          'email': email,
-        },
-        parser: (_) => null,
-      );
+      final UserModel updatedUser = await api.updateUser(id, name, email);
 
-      final index = users.indexWhere((u) => u.id == id);
-      if (index != -1) {
-        users[index].name = name;
-        users[index].email = email;
-        notifyListeners();
-      }
+      await _firestore
+          .collection('users_cache')
+          .doc(id.toString())
+          .update(updatedUser.toJson());
     } catch (e) {
       debugPrint('UPDATE USER ERROR: $e');
+      rethrow;
     }
   }
 
@@ -85,25 +80,77 @@ class UserViewModel extends ChangeNotifier {
   // =========================
   Future<void> deleteUser(int id) async {
     try {
-      await _apiService.request<void>(
-        endpoint: 'users/$id',
-        method: HttpMethod.delete,
-        parser: (_) => null,
-      );
+      await api.deleteUser(id);
 
-      users.removeWhere((u) => u.id == id);
-      notifyListeners();
+      await _firestore.collection('users_cache').doc(id.toString()).delete();
     } catch (e) {
       debugPrint('DELETE USER ERROR: $e');
+      rethrow;
     }
   }
-
-  // =========================
-  // LOGIN (LOCAL CHECK)
-  // =========================
-  bool login(String name, String email) {
-    return users.any(
-      (u) => u.name == name && u.email == email,
-    );
-  }
 }
+
+
+
+
+
+
+
+// import 'package:flutter/material.dart';
+// import '../core/services/api_service.dart';
+// import '../../model/user_model.dart';
+
+// class UserViewModel extends ChangeNotifier {
+//   final ApiService api;
+
+//   UserViewModel(this.api); 
+
+//   bool isLoading = false;
+//   List<UserModel> users = [];
+
+//   /// GET
+//   Future<void> loadUsers() async {
+//     isLoading = true;
+//     notifyListeners();
+
+//     users = await api.getUsers();
+
+//     isLoading = false;
+//     notifyListeners();
+//   }
+
+//   /// POST
+//   Future<void> createUser(String name, String email) async {
+//     final user = await api.createUser(name, email);
+//     users.add(user);
+//     notifyListeners();
+
+    
+//   }
+
+//   /// PUT
+//   Future<void> updateUser(int id, String name, String email) async {
+//     await api.updateUser(id, name, email);
+
+//     final index = users.indexWhere((u) => u.id == id);
+//     if (index != -1) {
+//       users[index].name = name;
+//       users[index].email = email;
+//       notifyListeners();
+//     }
+//   }
+
+//   /// DELETE
+//   Future<void> deleteUser(int id) async {
+//     await api.deleteUser(id);
+//     users.removeWhere((u) => u.id == id);
+//     notifyListeners();
+//   }
+
+//   /// LOGIN
+//   bool login(String name, String email) {
+//     return users.any(
+//       (u) => u.name == name && u.email == email,
+//     );
+//   }
+// }

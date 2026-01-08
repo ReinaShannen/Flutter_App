@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_app/core/services/api_service.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
@@ -20,7 +21,7 @@ void main() async {
       providers: [
         // 🔹 User CRUD ViewModel
         ChangeNotifierProvider(
-          create: (_) => UserViewModel(),
+          create: (_) => UserViewModel(ApiService()),
         ),
 
         // 🔹 Auth (Login / Register) ViewModel
