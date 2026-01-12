@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_app/core/services/api_service.dart';
 import 'package:provider/provider.dart';
+import 'core/storage/app_preferences.dart';
+import 'core/storage/pref_keys.dart';
+
+
 
 import 'firebase_options.dart';
 import 'routes/app_routes.dart';
@@ -15,6 +19,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await AppPreferences.init();
+  
 
   runApp(
     MultiProvider(
@@ -39,11 +45,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isLoggedIn =
+        AppPreferences.getBool(PrefKeys.isLoggedIn);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'User Profile Management App',
-      initialRoute: AppRoutes.splash,
+      initialRoute: isLoggedIn
+          ? AppRoutes.dashboard
+          : AppRoutes.splash,
       routes: AppRoutes.routes,
     );
   }
 }
+

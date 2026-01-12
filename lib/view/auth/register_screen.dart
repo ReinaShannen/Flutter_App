@@ -44,7 +44,12 @@ class RegisterScreen extends StatelessWidget {
                 ],
               ),
               child: Form(
-                key: authVM.formKey,
+                  key: authVM.formKey,
+                  autovalidateMode: authVM.hasSubmitted
+                      ? AutovalidateMode.onUserInteraction
+                      : AutovalidateMode.disabled,
+
+
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -128,7 +133,7 @@ class RegisterScreen extends StatelessWidget {
                       decoration: const InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(),
-                        errorMaxLines: 2, // 👈 IMPORTANT FIX
+                        errorMaxLines: 2, 
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -157,7 +162,7 @@ class RegisterScreen extends StatelessWidget {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Confirm your password';
+                          return null;
                         }
                         if (value != authVM.passwordController.text) {
                           return 'Passwords do not match';
@@ -169,44 +174,45 @@ class RegisterScreen extends StatelessWidget {
                     const SizedBox(height: 30),
 
                     // 🔹 REGISTER BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: AppButtonStyles.primaryLilacButton,
-                        onPressed: authVM.isLoading
-                            ? null
-                            : () async {
-                                if (!authVM.formKey.currentState!.validate()) {
-                                  return;
-                                }
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: AppButtonStyles.primaryLilacButton,
+                      onPressed: authVM.isLoading
+                          ? null
+                          : () async {
+                              authVM.hasSubmitted = true;
+                              authVM.notifyListeners(); 
 
-                                final error = await authVM.registerUser();
+                              if (!authVM.formKey.currentState!.validate()) {
+                                return;
+                              }
 
-                                if (error == null && context.mounted) {
-                                  Navigator.pushReplacementNamed(
-                                      context, '/dashboard');
+                              final error = await authVM.registerUser();
 
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Registration successful'),
-                                    ),
-                                  );
-                                } else if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(error ?? 'Error'),
-                                    ),
-                                  );
-                                }
-                              },
-                        child: authVM.isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : const Text('REGISTER'),
-                      ),
+                              if (error == null && context.mounted) {
+                                Navigator.pushReplacementNamed(context, '/dashboard');
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Registration successful'),
+                                  ),
+                                );
+                              } else if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(error ?? 'Error'),
+                                  ),
+                                );
+                              }
+                            },
+                      child: authVM.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('REGISTER'),
                     ),
+                  ),
+
                   ],
                 ),
               ),

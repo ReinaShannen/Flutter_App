@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme/app_button_styles.dart';
+import '../../core/storage/app_preferences.dart';
+import '../../core/storage/pref_keys.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
 
   bool _isLoading = false;
+  bool _hasSubmitted = false;
+
 
   //  Email regex
   final RegExp _emailRegex =
@@ -29,36 +34,69 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
+Future<void> _login() async {
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+  setState(() => _isLoading = true);
 
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+  try {
+    UserCredential userCredential =
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+
+    final user = userCredential.user;
+
+    if (user != null) {
+      // ✅ SAVE SESSION
+      await AppPreferences.putBool(PrefKeys.isLoggedIn, true);
+      await AppPreferences.putString(PrefKeys.userId, user.uid);
+      await AppPreferences.putString(PrefKeys.userName, user.email ?? '');
 
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/dashboard');
       }
-    } on FirebaseAuthException catch (e) {
-      String message = 'Login failed';
+    }
+  } on FirebaseAuthException catch (e) {
+    String message;
 
-      if (e.code == 'user-not-found') {
-        message = 'No user found for this email';
-      } else if (e.code == 'wrong-password') {
+    switch (e.code) {
+      case 'user-not-found':
+        message = 'No account found with this email';
+        break;
+
+      case 'wrong-password':
         message = 'Incorrect password';
-      }
+        break;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      case 'invalid-email':
+        message = 'Invalid email format';
+        break;
+
+      case 'invalid-credential':
+        message = 'Email and password do not match';
+        break;
+
+      case 'user-disabled':
+        message = 'This account has been disabled';
+        break;
+
+      default:
+        message = 'Login failed. Please try again';
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  } finally {
+    // 🔥 THIS LINE FIXES YOUR LOADER ISSUE
+    if (mounted) {
+      setState(() => _isLoading = false);
     }
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +158,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 child: Form(
-                  key: _formKey,
+                    key: _formKey,
+                    autovalidateMode: _hasSubmitted
+                      ? AutovalidateMode.onUserInteraction
+                      : AutovalidateMode.disabled,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -185,19 +226,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 30),
 
                       // 🔘 Login Button (USING COMMON STYLE)
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          style: AppButtonStyles.primaryLilacButton,
-                          onPressed: _isLoading ? null : _login,
-                          child: _isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
-                              : const Text('LOGIN'),
-                        ),
-                      ),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: AppButtonStyles.primaryLilacButton,
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              setState(() {
+                                _hasSubmitted = true;
+                              });
+
+                              _login();
+                            },
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('LOGIN'),
+                    ),
+                  ),
+
 
                       const SizedBox(height: 16),
 

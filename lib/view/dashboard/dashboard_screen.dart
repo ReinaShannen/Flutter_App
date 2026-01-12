@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
+import '../../core/widgets /logout_dialog.dart';
 import '../../viewmodel/user_viewmodel.dart';
+import '../../viewmodel/auth_viewmodel.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -73,15 +73,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return false;
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Dashboard'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              SystemNavigator.pop(); 
-            },
-          ),
-        ),
+appBar: AppBar(
+  title: const Text('Dashboard'),
+
+  // ⬅️ BACK BUTTON (keep as you want)
+  leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      SystemNavigator.pop();
+    },
+  ),
+
+  // 🚪 LOGOUT BUTTON
+ actions: [
+  IconButton(
+    icon: const Icon(Icons.logout),
+    onPressed: () {
+      LogoutDialog.show(context);
+
+    },
+  ),
+],
+
+),
+
 
         body: Column(
           children: [
@@ -326,6 +341,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
+
 
 
 
