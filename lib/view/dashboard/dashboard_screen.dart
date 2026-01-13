@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../../core/widgets /logout_dialog.dart';
 import '../../viewmodel/user_viewmodel.dart';
-import '../../viewmodel/auth_viewmodel.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -24,14 +25,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
 
-    // Load users from API → Firestore
     Future.microtask(() {
-      Provider.of<UserViewModel>(context, listen: false).loadUsers();
+      Provider.of<UserViewModel>(context, listen: false).loadAllUsers();
       _loadProfileData();
     });
   }
 
-  // Load profile data from Firestore (logged-in user)
+  // =======================
+  // LOAD LOGGED IN USER PROFILE
+  // =======================
   Future<void> _loadProfileData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -63,40 +65,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userVM = Provider.of<UserViewModel>(context, listen: false);
     final currentUser = FirebaseAuth.instance.currentUser;
 
     return WillPopScope(
       onWillPop: () async {
-        // Close app instead of going back
         SystemNavigator.pop();
         return false;
       },
       child: Scaffold(
-appBar: AppBar(
-  title: const Text('Dashboard'),
-
-  // ⬅️ BACK BUTTON (keep as you want)
-  leading: IconButton(
-    icon: const Icon(Icons.arrow_back),
-    onPressed: () {
-      SystemNavigator.pop();
-    },
-  ),
-
-  // 🚪 LOGOUT BUTTON
- actions: [
-  IconButton(
-    icon: const Icon(Icons.logout),
-    onPressed: () {
-      LogoutDialog.show(context);
-
-    },
-  ),
-],
-
-),
-
+        appBar: AppBar(
+          title: const Text('Dashboard'),
+          automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () {
+                LogoutDialog.show(context);
+              },
+            ),
+          ],
+        ),
 
         body: Column(
           children: [
@@ -131,13 +119,14 @@ appBar: AppBar(
                   Text(
                     username ?? '',
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w600),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     currentUser?.email ?? '',
-                    style:
-                        const TextStyle(fontSize: 14, color: Colors.grey),
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
               ),
@@ -145,9 +134,6 @@ appBar: AppBar(
 
             const SizedBox(height: 16),
 
-            // =======================
-            // USERS TITLE
-            // =======================
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Align(
@@ -162,63 +148,77 @@ appBar: AppBar(
             const SizedBox(height: 8),
 
             // =======================
-            // USERS LIST (Firestore Stream)
+            // COMBINED USERS LIST
             // =======================
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('users_cache')
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
+              child: Consumer<UserViewModel>(
+                builder: (context, userVM, _) {
+                  if (userVM.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  if (userVM.combinedUsers.isEmpty) {
                     return const Center(child: Text('No users found'));
                   }
 
-                  final docs = snapshot.data!.docs;
-
                   return ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: docs.length,
+                    itemCount: userVM.combinedUsers.length,
                     itemBuilder: (context, index) {
-                      final data =
-                          docs[index].data() as Map<String, dynamic>;
-
-                      final int id = int.parse(docs[index].id);
+                      final user = userVM.combinedUsers[index];
 
                       return Card(
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: ListTile(
-                          leading: const CircleAvatar(
-                            child: Icon(Icons.person),
+                          leading: CircleAvatar(
+                            backgroundImage: user.profileImageBase64 != null &&
+                                    user.profileImageBase64!.isNotEmpty
+                                ? MemoryImage(
+                                    base64Decode(user.profileImageBase64!),
+                                  )
+                                : null,
+                            child: user.profileImageBase64 == null ||
+                                    user.profileImageBase64!.isEmpty
+                                ? const Icon(Icons.person)
+                                : null,
                           ),
-                          title: Text(data['name'] ?? ''),
-                          subtitle: Text(data['email'] ?? ''),
+                          title: Text(user.name),
+                          subtitle: Text(user.email),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.edit,
-                                    color: Colors.blue),
+                                icon: const Icon(Icons.edit, color: Colors.blue),
                                 onPressed: () {
-                                  _showEditDialog(
-                                    context,
-                                    userVM,
-                                    id,
-                                    data['name'],
-                                    data['email'],
-                                  );
+                                  if (user.isRegistered) {
+                                    _showEditRegisteredDialog(
+                                      context,
+                                      userVM,
+                                      user.id,
+                                      user.name,
+                                      user.email,
+                                    );
+                                  } else {
+                                    _showEditApiDialog(
+                                      context,
+                                      userVM,
+                                      int.parse(user.id),
+                                      user.name,
+                                      user.email,
+                                    );
+                                  }
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete,
-                                    color: Colors.red),
+                                icon: const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () async {
-                                  await userVM.deleteUser(id);
+                                  if (user.isRegistered) {
+                                    await userVM.deleteRegisteredUser(user.id);
+                                  } else {
+                                    await userVM.deleteUser(int.parse(user.id));
+                                  }
                                 },
                               ),
                             ],
@@ -234,11 +234,11 @@ appBar: AppBar(
         ),
 
         // =======================
-        // ADD USER BUTTON
+        // ADD USER (API)
         // =======================
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            _showAddDialog(context, userVM);
+            _showAddDialog(context);
           },
           child: const Icon(Icons.add),
         ),
@@ -247,9 +247,10 @@ appBar: AppBar(
   }
 
   // =======================
-  // ADD USER DIALOG
+  // ADD API USER
   // =======================
-  void _showAddDialog(BuildContext context, UserViewModel userVM) {
+  void _showAddDialog(BuildContext context) {
+    final userVM = Provider.of<UserViewModel>(context, listen: false);
     final nameController = TextEditingController();
     final emailController = TextEditingController();
 
@@ -291,9 +292,9 @@ appBar: AppBar(
   }
 
   // =======================
-  // EDIT USER DIALOG
+  // EDIT API USER
   // =======================
-  void _showEditDialog(
+  void _showEditApiDialog(
     BuildContext context,
     UserViewModel userVM,
     int id,
@@ -340,9 +341,58 @@ appBar: AppBar(
       ),
     );
   }
+
+  // =======================
+  // EDIT REGISTERED USER
+  // =======================
+  void _showEditRegisteredDialog(
+    BuildContext context,
+    UserViewModel userVM,
+    String uid,
+    String currentName,
+    String currentEmail,
+  ) {
+    final nameController = TextEditingController(text: currentName);
+    final emailController = TextEditingController(text: currentEmail);
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Edit Registered User'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Username'),
+            ),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await userVM.updateRegisteredUser(
+                uid,
+                nameController.text.trim(),
+                emailController.text.trim(),
+              );
+              Navigator.pop(context);
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
 }
-
-
 
 
 // import 'dart:convert';

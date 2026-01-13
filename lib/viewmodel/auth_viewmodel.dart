@@ -70,7 +70,7 @@ class AuthViewModel extends ChangeNotifier {
       );
 
       final uid = userCredential.user!.uid;
-      print('✅ Saving userId to secure storage: $uid');
+      print('Saving userId to secure storage: $uid');
 
 
       await _firestore.collection('user').doc(uid).set({

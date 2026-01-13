@@ -4,6 +4,7 @@ import 'package:flutter_app/core/services/api_service.dart';
 import 'package:provider/provider.dart';
 import 'core/storage/app_preferences.dart';
 import 'core/storage/pref_keys.dart';
+import 'core/services/remote_config_service.dart';
 
 
 
@@ -20,17 +21,18 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await AppPreferences.init();
+  await RemoteConfigService.init();
   
 
   runApp(
     MultiProvider(
       providers: [
-        // 🔹 User CRUD ViewModel
+        // User CRUD ViewModel
         ChangeNotifierProvider(
           create: (_) => UserViewModel(ApiService()),
         ),
 
-        // 🔹 Auth (Login / Register) ViewModel
+        // Auth (Login / Register) ViewModel
         ChangeNotifierProvider(
           create: (_) => AuthViewModel(),
         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodel/auth_viewmodel.dart';
+import '../../core/services/remote_config_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,32 +16,41 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkSession();
+    _loadRemoteConfigAndCheckSession();
   }
 
-Future<void> _checkSession() async {
-  await Future.delayed(const Duration(seconds: 2)); // for animation
+  Future<void> _loadRemoteConfigAndCheckSession() async {
+    //  Small delay for animation
+    await Future.delayed(const Duration(seconds: 2));
 
-  final authVM = Provider.of<AuthViewModel>(context, listen: false);
-  bool isLoggedIn = await authVM.isLoggedIn();
-  print('🚀 isLoggedIn from splash: $isLoggedIn');
+    //fetch + print remote config
+    print(' ===== Remote Config Values =====');
+    print('Maintenance Mode: ${RemoteConfigService.maintenanceMode}');
+    print('Welcome Message: ${RemoteConfigService.welcomeMessage}');
+    print('Show Register: ${RemoteConfigService.showRegister}');
+    print(' ===============================');
 
-  if (!mounted) return;
+    // session
+    final authVM = Provider.of<AuthViewModel>(context, listen: false);
+    bool isLoggedIn = authVM.isLoggedIn();
 
-  if (isLoggedIn) {
-    Navigator.pushReplacementNamed(context, '/dashboard');
-  } else {
-    Navigator.pushReplacementNamed(context, '/home');
+    print('isLoggedIn from splash: $isLoggedIn');
+
+    if (!mounted) return;
+
+    if (isLoggedIn) {
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } else {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // 🔹 Background Image
+          // Background Image
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -50,7 +60,7 @@ Future<void> _checkSession() async {
             ),
           ),
 
-          // 🔹 Lottie Animation
+          // Lottie Animation
           Positioned.fill(
             child: Lottie.asset(
               'assets/lottie/Study.json',
@@ -58,7 +68,7 @@ Future<void> _checkSession() async {
             ),
           ),
 
-          // 🔹 Foreground content
+          // Foreground content
           Align(
             alignment: Alignment.bottomCenter,
             child: SafeArea(
@@ -90,6 +100,7 @@ Future<void> _checkSession() async {
     );
   }
 }
+
 
 // import 'dart:async';
 // import 'package:flutter/material.dart';
