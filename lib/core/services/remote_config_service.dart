@@ -29,4 +29,8 @@ class RemoteConfigService {
 
   static bool get showRegister =>
       _remoteConfig.getBool('show_register');
+
+  static String get appThemeColor =>
+    _remoteConfig.getString('app_theme_color');
+
 }

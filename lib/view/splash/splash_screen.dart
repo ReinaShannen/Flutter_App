@@ -51,14 +51,8 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Stack(
         children: [
           // Background Image
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/background2.jpeg'),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
+            Container(color: Theme.of(context).primaryColor),
+
 
           // Lottie Animation
           Positioned.fill(

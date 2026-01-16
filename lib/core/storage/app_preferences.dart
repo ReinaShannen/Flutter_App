@@ -1,8 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
 
 class AppPreferences {
   static SharedPreferences? _prefs;
-
 
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -36,6 +36,25 @@ class AppPreferences {
 
   static bool getBool(String key, {bool defaultValue = false}) {
     return _prefs?.getBool(key) ?? defaultValue;
+  }
+
+  // ================== THEME MODE ==================
+
+  static Future<void> setThemeMode(ThemeMode mode) async {
+    await _prefs?.setString('theme_mode', mode.name);
+  }
+
+  static ThemeMode getThemeMode() {
+    final mode = _prefs?.getString('theme_mode') ?? 'system';
+
+    switch (mode) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
   }
 
   // ================== REMOVE / CLEAR ==================

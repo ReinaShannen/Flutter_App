@@ -45,7 +45,7 @@ class UserViewModel extends ChangeNotifier {
   }
 
   // =========================
-  // 🔹 LOAD ALL USERS (API + REGISTERED)
+  // LOAD ALL USERS (API + REGISTERED)
   // =========================
   Future<void> loadAllUsers() async {
     try {

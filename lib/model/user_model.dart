@@ -1,9 +1,9 @@
 class UserModel {
-  final String id; // make it String (works for both API & Firestore)
+  final String id; 
   final String name;
   final String email;
-  final String? profileImageBase64; // only for registered users
-  final bool isRegistered; // to differentiate source
+  final String? profileImageBase64; 
+  final bool isRegistered; 
 
   UserModel({
     required this.id,
@@ -23,7 +23,7 @@ class UserModel {
     );
   }
 
-  // 🔹 From Firestore registered users
+  //  From Firestore registered users
   factory UserModel.fromFirestore(String docId, Map<String, dynamic> json) {
     return UserModel(
       id: docId,

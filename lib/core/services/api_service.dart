@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../model/user_model.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+
 
 class ApiService {
   static const String baseUrl = 'https://jsonplaceholder.typicode.com';
-
+  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
   // =========================
   // GET USERS
   // =========================
@@ -12,6 +14,11 @@ class ApiService {
     final response = await http.get(Uri.parse('$baseUrl/users'));
 
     if (response.statusCode == 200) {
+
+
+        _analytics.logEvent(
+        name: 'get_users_success',
+      );
       final List data = jsonDecode(response.body);
       return data.map((e) => UserModel.fromJson(e)).toList();
     } else {
@@ -33,6 +40,11 @@ class ApiService {
     );
 
     if (response.statusCode == 201 || response.statusCode == 200) {
+        _analytics.logEvent(
+        name: 'create_user_success',
+      );
+
+
       final data = jsonDecode(response.body);
       return UserModel.fromJson(data);
     } else {
@@ -54,6 +66,13 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
+
+        _analytics.logEvent(
+        name: 'update_user_success',
+        parameters: {
+          'user_id': id,
+        },
+      );
       final data = jsonDecode(response.body);
       return UserModel.fromJson(data);
     } else {
@@ -66,8 +85,19 @@ class ApiService {
   // =========================
   Future<void> deleteUser(int id) async {
     final response = await http.delete(Uri.parse('$baseUrl/users/$id'));
+        if (response.statusCode == 200 || response.statusCode == 204) {
 
-    if (response.statusCode != 200 && response.statusCode != 204) {
+      // 🔹 Analytics: Delete User API Success
+      _analytics.logEvent(
+        name: 'delete_user_success',
+        parameters: {
+          'user_id': id,
+        },
+      );
+
+    }
+
+    else if  (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to delete user');
     }
   }
