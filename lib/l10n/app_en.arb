@@ -1,0 +1,39 @@
+{
+  "@@locale": "en",
+
+  "login": "Login",
+  "welcomeBack": "Welcome Back",
+  "loginToContinue": "Login to continue",
+
+  "emailRequired": "Email is required",
+  "passwordRequired": "Password is required",
+  "invalidEmail": "Invalid email format",
+  "passwordTooShort": "Password must be at least 6 characters",
+
+  "loginFailed": "Login failed. Please try again",
+  "wrongPassword": "Incorrect password",
+  "userNotFound": "No account found with this email",
+  "userDisabled": "This account has been disabled",
+  "genericError": "Something went wrong. Please try again",
+
+
+  "emailLabel": "Email",
+  "passwordLabel": "Password",
+  "dontHaveAccount": "Don’t have an account?",
+  "register": "Register",
+
+
+  "profileManager": "Profile Manager",
+  "manageUsers": "Manage users easily",
+  "homeSubtitle": "Authentication & data powered by\nFlutter and Firebase",
+  "secureAuth": "Secure Firebase Authentication",
+  "manageUsersRealtime": "Manage users in real-time",
+  "cleanArchitecture": "Clean MVVM architecture",
+  "trustText": "Secure • Fast • Firebase Auth",
+  "login": "LOGIN",
+  "register": "REGISTER",
+  "forceCrash": "FORCE CRASH"
+}
+
+
+

@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/storage/app_preferences.dart';
 import '../../core/storage/pref_keys.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import '../../l10n/app_localizations.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
   bool _hasSubmitted = false;
-  bool _obscurePassword = true; // 👁️ toggle state
+  bool _obscurePassword = true;
 
   final RegExp _emailRegex =
       RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
@@ -62,26 +65,24 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } on FirebaseAuthException catch (e) {
+      final l10n = AppLocalizations.of(context)!;
       String message;
 
       switch (e.code) {
         case 'user-not-found':
-          message = 'No account found with this email';
+          message = l10n.userNotFound;
           break;
         case 'wrong-password':
-          message = 'Incorrect password';
+          message = l10n.wrongPassword;
           break;
         case 'invalid-email':
-          message = 'Invalid email format';
-          break;
-        case 'invalid-credential':
-          message = 'Email and password do not match';
+          message = l10n.invalidEmail;
           break;
         case 'user-disabled':
-          message = 'This account has been disabled';
+          message = l10n.userDisabled;
           break;
         default:
-          message = 'Login failed. Please try again';
+          message = l10n.loginFailed;
       }
 
       FirebaseAnalytics.instance.logEvent(
@@ -105,13 +106,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Stack(
           children: [
-            // Back Button
             Positioned(
               top: 16,
               left: 16,
@@ -140,7 +141,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            // Login Card
             Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -166,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Welcome Back',
+                          l10n.welcomeBack,
                           style: textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.primary,
@@ -176,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 8),
 
                         Text(
-                          'Login to continue',
+                          l10n.loginToContinue,
                           style: textTheme.bodyMedium?.copyWith(
                             color: colorScheme.onSurface.withOpacity(0.7),
                           ),
@@ -184,20 +184,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         const SizedBox(height: 30),
 
-                        // Email
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
+                          decoration:  InputDecoration(
+                            labelText: l10n.emailLabel,
+
                             border: OutlineInputBorder(),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Email is required';
+                              return l10n.emailRequired;
                             }
                             if (!_emailRegex.hasMatch(value.trim())) {
-                              return 'Enter a valid email address';
+                              return l10n.invalidEmail;
                             }
                             return null;
                           },
@@ -205,12 +205,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         const SizedBox(height: 20),
 
-                        // Password with Eye Icon 👁️
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
-                            labelText: 'Password',
+                            labelText: l10n.passwordLabel,
                             border: const OutlineInputBorder(),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -227,10 +226,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Password is required';
+                              return l10n.passwordRequired;
                             }
                             if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
+                              return l10n.passwordTooShort;
                             }
                             return null;
                           },
@@ -238,7 +237,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         const SizedBox(height: 30),
 
-                        // Login Button
                         SizedBox(
                           width: double.infinity,
                           height: 50,
@@ -264,24 +262,24 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? CircularProgressIndicator(
                                     color: colorScheme.onPrimary,
                                   )
-                                : const Text('LOGIN'),
+                                : Text(l10n.login),
                           ),
                         ),
 
                         const SizedBox(height: 16),
 
-                        // Navigate to Register
                         TextButton(
                           onPressed: () {
                             Navigator.pushNamed(context, '/register');
                           },
                           child: Text(
-                            'Don’t have an account? Register',
+                            '${l10n.dontHaveAccount} ${l10n.register}',
                             style: TextStyle(
                               color: colorScheme.primary,
                             ),
                           ),
                         ),
+                        
                       ],
                     ),
                   ),

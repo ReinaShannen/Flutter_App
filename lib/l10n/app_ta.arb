@@ -1,0 +1,38 @@
+{
+  "@@locale": "ta",
+
+  "login": "உள்நுழை",
+  "welcomeBack": "மீண்டும் வரவேற்கிறோம்",
+  "loginToContinue": "தொடர உள்நுழையவும்",
+
+  "emailRequired": "மின்னஞ்சல் அவசியம்",
+  "passwordRequired": "கடவுச்சொல் அவசியம்",
+  "invalidEmail": "தவறான மின்னஞ்சல் வடிவம்",
+  "passwordTooShort": "கடவுச்சொல் குறைந்தது 6 எழுத்துகள் இருக்க வேண்டும்",
+
+  "loginFailed": "உள்நுழைவு தோல்வியடைந்தது. மீண்டும் முயற்சிக்கவும்",
+  "wrongPassword": "தவறான கடவுச்சொல்",
+  "userNotFound": "இந்த மின்னஞ்சலுடன் கணக்கு இல்லை",
+  "userDisabled": "இந்த கணக்கு முடக்கப்பட்டுள்ளது",
+  "genericError": "ஏதோ தவறு ஏற்பட்டுள்ளது. மீண்டும் முயற்சிக்கவும்",
+
+  "emailLabel": "மின்னஞ்சல்",
+  "passwordLabel": "கடவுச்சொல்",
+  "dontHaveAccount": "கணக்கு இல்லையா?",
+  "register": "பதிவு செய்யவும்",
+
+
+  "profileManager": "சுயவிவர மேலாளர்",
+  "manageUsers": "பயனர்களை எளிதாக நிர்வகிக்கவும்",
+  "homeSubtitle": "Flutter மற்றும் Firebase மூலம்\nஅங்கீகாரம் மற்றும் தரவு",
+  "secureAuth": "பாதுகாப்பான Firebase அங்கீகாரம்",
+  "manageUsersRealtime": "நேரடியாக பயனர்களை நிர்வகிக்கவும்",
+  "cleanArchitecture": "சுத்தமான MVVM கட்டமைப்பு",
+  "trustText": "பாதுகாப்பு • வேகம் • Firebase அங்கீகாரம்",
+  "login": "உள்நுழை",
+  "register": "பதிவு",
+  "forceCrash": "கட்டாயக் கோளாறு"
+}
+
+
+

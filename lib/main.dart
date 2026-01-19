@@ -8,6 +8,13 @@ import 'core/services/remote_config_service.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'dart:ui';
 import 'core/theme/app_themes.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
+import 'core/localization/locale_provider.dart';
+
+
+
+
 
 
 import 'firebase_options.dart';
@@ -18,9 +25,9 @@ import 'viewmodel/auth_viewmodel.dart';
 
 import 'core/theme/theme_provider.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -30,12 +37,18 @@ void main() async {
   await AppPreferences.init();
   await RemoteConfigService.init();
 
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  FlutterError.onError =
+      FirebaseCrashlytics.instance.recordFlutterFatalError;
 
   PlatformDispatcher.instance.onError = (error, stack) {
-  FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    FirebaseCrashlytics.instance.recordError(
+      error,
+      stack,
+      fatal: true,
+    );
     return true;
   };
+
   runApp(
     MultiProvider(
       providers: [
@@ -48,42 +61,54 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => AuthViewModel(),
         ),
+
+        // Theme Provider
         ChangeNotifierProvider(
-          create: (_) {
-            final provider = ThemeProvider();
-            return provider;
-          },
+          create: (_) => ThemeProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => LocaleProvider(), )
 
-
-    ],
+      ],
       child: const MyApp(),
     ),
   );
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
- return Consumer<ThemeProvider>(
-  builder: (context, themeProvider, _) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'User Profile Management App',
+    return Consumer2<ThemeProvider, LocaleProvider>(
+  builder: (context, themeProvider, localeProvider, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'User Profile Management App',
 
-      theme: themeProvider.lightTheme,
-      darkTheme: themeProvider.darkTheme,
-      themeMode: themeProvider.themeMode,
+          // THEMES
+          theme: themeProvider.lightTheme,
+          darkTheme: themeProvider.darkTheme,
+          themeMode: themeProvider.themeMode,
+          locale: localeProvider.locale,
 
-      initialRoute: AppRoutes.splash,
-      routes: AppRoutes.routes,
+          // LOCALIZATION 
+          supportedLocales: const [
+            Locale('en'), // English
+            Locale('ta'), // Tamil
+          ],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+
+          // 🔹 ROUTES
+          initialRoute: AppRoutes.splash,
+          routes: AppRoutes.routes,
+        );
+      },
     );
-  },
-);
-
-
   }
 }
-
-

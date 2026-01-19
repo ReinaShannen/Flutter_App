@@ -4,6 +4,8 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/theme_provider.dart';
+import '../../core/localization/locale_provider.dart';
+import '../../l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,17 +20,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-
     Future.delayed(const Duration(milliseconds: 300), () {
-      setState(() {
-        _animate = true;
-      });
+      setState(() => _animate = true);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final themeProvider = context.read<ThemeProvider>();
+    final l10n = AppLocalizations.of(context)!;
 
     final bgColor = Theme.of(context).colorScheme.background;
     final textColor = Theme.of(context).colorScheme.onBackground;
@@ -37,9 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          SystemNavigator.pop();
-        }
+        if (!didPop) SystemNavigator.pop();
       },
       child: Scaffold(
         backgroundColor: bgColor,
@@ -47,39 +45,59 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               // =========================
-              // TOP BAR WITH THEME SWITCH
+              // TOP BAR
               // =========================
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Profile Manager',
+                      l10n.profileManager,
                       style: TextStyle(
                         color: textColor,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-
-                    PopupMenuButton<ThemeMode>(
-                      icon: Icon(Icons.color_lens, color: textColor),
-                      onSelected: (mode) {
-                        themeProvider.setThemeMode(mode);
-                      },
-                      itemBuilder: (context) => const [
-                        PopupMenuItem(
-                          value: ThemeMode.system,
-                          child: Text('System Theme'),
+                    Row(
+                      children: [
+                        PopupMenuButton<Locale>(
+                          icon: Icon(Icons.language, color: textColor),
+                          onSelected: (locale) {
+                            context
+                                .read<LocaleProvider>()
+                                .setLocale(locale);
+                          },
+                          itemBuilder: (_) => const [
+                            PopupMenuItem(
+                              value: Locale('en'),
+                              child: Text('English'),
+                            ),
+                            PopupMenuItem(
+                              value: Locale('ta'),
+                              child: Text('தமிழ்'),
+                            ),
+                          ],
                         ),
-                        PopupMenuItem(
-                          value: ThemeMode.light,
-                          child: Text('Light Theme'),
-                        ),
-                        PopupMenuItem(
-                          value: ThemeMode.dark,
-                          child: Text('Dark Theme'),
+                        PopupMenuButton<ThemeMode>(
+                          icon: Icon(Icons.color_lens, color: textColor),
+                          onSelected: themeProvider.setThemeMode,
+                          itemBuilder: (_) => const [
+                            PopupMenuItem(
+                              value: ThemeMode.system,
+                              child: Text('System'),
+                            ),
+                            PopupMenuItem(
+                              value: ThemeMode.light,
+                              child: Text('Light'),
+                            ),
+                            PopupMenuItem(
+                              value: ThemeMode.dark,
+                              child: Text('Dark'),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -88,146 +106,102 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               // =========================
-              // MAIN CONTENT
+              // CONTENT
               // =========================
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 32),
 
-                      // 🔹 Animated Title
                       AnimatedOpacity(
                         duration: const Duration(milliseconds: 800),
                         opacity: _animate ? 1 : 0,
-                        child: AnimatedSlide(
-                          duration: const Duration(milliseconds: 800),
-                          offset: _animate
-                              ? Offset.zero
-                              : const Offset(0, -0.2),
-                          child: Text(
-                            'Manage users easily',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w700,
-                              color: textColor,
-                            ),
+                        child: Text(
+                          l10n.manageUsers,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w700,
+                            color: textColor,
                           ),
                         ),
                       ),
 
                       const SizedBox(height: 12),
 
-                      // 🔹 Animated Subtitle
                       AnimatedOpacity(
                         duration: const Duration(milliseconds: 900),
                         opacity: _animate ? 1 : 0,
-                        child: AnimatedSlide(
-                          duration: const Duration(milliseconds: 900),
-                          offset: _animate
-                              ? Offset.zero
-                              : const Offset(0, -0.2),
-                          child: Text(
-                            'Authentication & data powered by\nFlutter and Firebase',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 15,
-                              height: 1.4,
-                              color: textColor.withOpacity(0.7),
-                            ),
+                        child: Text(
+                          l10n.homeSubtitle,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            height: 1.4,
+                            color: textColor.withOpacity(0.7),
                           ),
                         ),
                       ),
 
                       const SizedBox(height: 48),
 
-                      // 🔹 Feature list
-                      AnimatedOpacity(
-                        duration: const Duration(milliseconds: 1000),
-                        opacity: _animate ? 1 : 0,
-                        child: Column(
-                          children: const [
-                            FeatureItem(
-                              icon: Icons.lock_outline,
-                              text: 'Secure Firebase Authentication',
-                            ),
-                            SizedBox(height: 14),
-                            FeatureItem(
-                              icon: Icons.people_outline,
-                              text: 'Manage users in real-time',
-                            ),
-                            SizedBox(height: 14),
-                            FeatureItem(
-                              icon: Icons.layers_outlined,
-                              text: 'Clean MVVM architecture',
-                            ),
-                          ],
-                        ),
+                      Column(
+                        children: [
+                          FeatureItem(
+                            icon: Icons.lock_outline,
+                            text: l10n.secureAuth,
+                          ),
+                          const SizedBox(height: 14),
+                          FeatureItem(
+                            icon: Icons.people_outline,
+                            text: l10n.manageUsersRealtime,
+                          ),
+                          const SizedBox(height: 14),
+                          FeatureItem(
+                            icon: Icons.layers_outlined,
+                            text: l10n.cleanArchitecture,
+                          ),
+                        ],
                       ),
 
                       const Spacer(),
 
-                      // 🔹 Buttons
-                      AnimatedOpacity(
-                        duration: const Duration(milliseconds: 900),
-                        opacity: _animate ? 1 : 0,
-                        child: AnimatedSlide(
-                          duration: const Duration(milliseconds: 900),
-                          offset: _animate
-                              ? Offset.zero
-                              : const Offset(0, 0.3),
-                          child: Column(
-                            children: [
-                              _actionButton(
-                                context,
-                                text: 'LOGIN',
-                                color: primaryColor,
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/login');
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              _actionButton(
-                                context,
-                                text: 'REGISTER',
-                                color: primaryColor,
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/register');
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              _actionButton(
-                                context,
-                                text: 'FORCE CRASH',
-                                color: Colors.red,
-                                onTap: () {
-                                  FirebaseCrashlytics.instance.crash();
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
+                      _actionButton(
+                        context,
+                        text: l10n.login,
+                        color: primaryColor,
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/login'),
+                      ),
+                      const SizedBox(height: 16),
+                      _actionButton(
+                        context,
+                        text: l10n.register,
+                        color: primaryColor,
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/register'),
+                      ),
+                      const SizedBox(height: 16),
+                      _actionButton(
+                        context,
+                        text: l10n.forceCrash,
+                        color: Colors.red,
+                        onTap: () {
+                          FirebaseCrashlytics.instance.crash();
+                        },
                       ),
 
                       const SizedBox(height: 24),
 
-                      // 🔹 Trust text
-                      AnimatedOpacity(
-                        duration: const Duration(milliseconds: 1200),
-                        opacity: _animate ? 1 : 0,
-                        child: Text(
-                          'Secure • Fast • Firebase Auth',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: textColor.withOpacity(0.6),
-                          ),
+                      Text(
+                        l10n.trustText,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: textColor.withOpacity(0.6),
                         ),
                       ),
-
-                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
@@ -257,10 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         onPressed: onTap,
-        child: Text(
-          text,
-          style: const TextStyle(letterSpacing: 1.2),
-        ),
+        child: Text(text, style: const TextStyle(letterSpacing: 1.2)),
       ),
     );
   }
@@ -278,7 +249,8 @@ class FeatureItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = Theme.of(context).colorScheme.onBackground;
+    final textColor =
+        Theme.of(context).colorScheme.onBackground;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
