@@ -251,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     setState(() {
                                       _hasSubmitted = true;
                                     });
-
+                                  
                                     FirebaseAnalytics.instance.logEvent(
                                       name: 'login_clicked',
                                     );

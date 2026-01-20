@@ -24,6 +24,8 @@ import 'viewmodel/user_viewmodel.dart';
 import 'viewmodel/auth_viewmodel.dart';
 
 import 'core/theme/theme_provider.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +35,8 @@ void main() async {
   );
 
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+  await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+
 
   await AppPreferences.init();
   await RemoteConfigService.init();

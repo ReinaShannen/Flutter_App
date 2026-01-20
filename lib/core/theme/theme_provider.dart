@@ -29,7 +29,7 @@ class ThemeProvider extends ChangeNotifier {
 
     if (hex.isNotEmpty) {
       _brandColor = _hexToColor(hex);
-      debugPrint('🎨 Remote brand color applied: $hex');
+      debugPrint('Remote brand color applied: $hex');
     }
 
     notifyListeners();

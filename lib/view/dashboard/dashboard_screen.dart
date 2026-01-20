@@ -37,20 +37,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('user')
-          .doc(user.uid)
-          .get();
+    final doc = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(user.uid)
+        .get();
 
-      if (doc.exists) {
-        setState(() {
-          profileImageBase64 = doc.data()?['profileImageBase64'];
-          username = doc.data()?['username'];
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading profile data: $e');
+    if (doc.exists) {
+      setState(() {
+        profileImageBase64 = doc.data()?['profileImageBase64'];
+        username = doc.data()?['username'];
+      });
     }
   }
 
@@ -58,8 +54,111 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final cleanedBase64 = base64String.contains(',')
         ? base64String.split(',').last
         : base64String;
-
     return base64Decode(cleanedBase64);
+  }
+
+  // USER ACTION BOTTOM SHEET
+
+  void _showUserActionBottomSheet(
+    BuildContext context,
+    UserViewModel userVM,
+    dynamic user,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('Edit User'),
+                onTap: () {
+                  Navigator.pop(context);
+                  if (user.isRegistered) {
+                    _showEditRegisteredDialog(
+                      context,
+                      userVM,
+                      user.id,
+                      user.name,
+                      user.email,
+                    );
+                  } else {
+                    _showEditApiDialog(
+                      context,
+                      userVM,
+                      int.parse(user.id),
+                      user.name,
+                      user.email,
+                    );
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Delete User'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showDeleteConfirmation(context, userVM, user);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  
+  // DELETE CONFIRMATION DIALOG 
+
+  void _showDeleteConfirmation(
+    BuildContext context,
+    UserViewModel userVM,
+    dynamic user,
+  ) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete User'),
+        content: const Text(
+          'Are you sure you want to delete this user? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              Navigator.pop(context); 
+
+              if (user.isRegistered) {
+                userVM.deleteRegisteredUser(user.id);
+              } else {
+                userVM.deleteUser(int.parse(user.id));
+              }
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -75,136 +174,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
       child: Scaffold(
         backgroundColor: colorScheme.surface,
-
         appBar: AppBar(
           backgroundColor: colorScheme.primary,
-          title: Text(
-            'Dashboard',
-            style: TextStyle(color: colorScheme.onPrimary),
-          ),
+          title: Text('Dashboard',
+              style: TextStyle(color: colorScheme.onPrimary)),
           automaticallyImplyLeading: false,
           actions: [
             IconButton(
               icon: Icon(Icons.logout, color: colorScheme.onPrimary),
-              onPressed: () {
-                LogoutDialog.show(context);
-              },
+              onPressed: () => LogoutDialog.show(context),
             ),
           ],
         ),
+        body: Consumer<UserViewModel>(
+          builder: (context, userVM, _) {
+            if (userVM.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        body: Column(
-          children: [
-            // =======================
-            // TOP PROFILE SECTION
-            // =======================
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
+            return GridView.builder(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              itemCount: userVM.combinedUsers.length,
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.85,
               ),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: colorScheme.onPrimary.withOpacity(0.2),
-                    backgroundImage: profileImageBase64 != null &&
-                            profileImageBase64!.isNotEmpty
-                        ? MemoryImage(decodeBase64Image(profileImageBase64!))
-                        : null,
-                    child: profileImageBase64 == null ||
-                            profileImageBase64!.isEmpty
-                        ? Icon(Icons.person,
-                            size: 40, color: colorScheme.onPrimary)
-                        : null,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    username ?? '',
-                    style: textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ) ??
-                        TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onPrimary,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    currentUser?.email ?? '',
-                    style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onPrimary.withOpacity(0.7),
-                        ) ??
-                        TextStyle(
-                          fontSize: 14,
-                          color: colorScheme.onPrimary.withOpacity(0.7),
-                        ),
-                  ),
-                ],
-              ),
-            ),
+              itemBuilder: (context, index) {
+                final user = userVM.combinedUsers[index];
 
-            const SizedBox(height: 16),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Users',
-                  style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ) ??
-                      const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // =======================
-            // COMBINED USERS LIST
-            // =======================
-            Expanded(
-              child: Consumer<UserViewModel>(
-                builder: (context, userVM, _) {
-                  if (userVM.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (userVM.combinedUsers.isEmpty) {
-                    return const Center(child: Text('No users found'));
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: userVM.combinedUsers.length,
-                    itemBuilder: (context, index) {
-                      final user = userVM.combinedUsers[index];
-
-                      return Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 3,
-                        child: ListTile(
-                          leading: CircleAvatar(
+                return GestureDetector(
+                  onLongPress: () =>
+                      _showUserActionBottomSheet(context, userVM, user),
+                  child: Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 28,
                             backgroundColor: colorScheme.primary,
                             backgroundImage: user.profileImageBase64 != null &&
                                     user.profileImageBase64!.isNotEmpty
                                 ? MemoryImage(
-                                    base64Decode(user.profileImageBase64!),
-                                  )
+                                    base64Decode(user.profileImageBase64!))
                                 : null,
                             child: user.profileImageBase64 == null ||
                                     user.profileImageBase64!.isEmpty
@@ -212,61 +232,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     color: colorScheme.onPrimary)
                                 : null,
                           ),
-                          title: Text(user.name),
-                          subtitle: Text(user.email),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.edit,
-                                    color: colorScheme.primary),
-                                onPressed: () {
-                                  if (user.isRegistered) {
-                                    _showEditRegisteredDialog(
-                                      context,
-                                      userVM,
-                                      user.id,
-                                      user.name,
-                                      user.email,
-                                    );
-                                  } else {
-                                    _showEditApiDialog(
-                                      context,
-                                      userVM,
-                                      int.parse(user.id),
-                                      user.name,
-                                      user.email,
-                                    );
-                                  }
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () async {
-                                  if (user.isRegistered) {
-                                    await userVM.deleteRegisteredUser(user.id);
-                                  } else {
-                                    await userVM.deleteUser(int.parse(user.id));
-                                  }
-                                },
-                              ),
-                            ],
+                          const SizedBox(height: 10),
+                          Text(
+                            user.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
+                          const SizedBox(height: 4),
+                          Text(
+                            user.email,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         ),
-
         floatingActionButton: FloatingActionButton(
           backgroundColor: colorScheme.primary,
-          onPressed: () {
-            _showAddDialog(context);
-          },
+          onPressed: () => _showAddDialog(context),
           child: Icon(Icons.add, color: colorScheme.onPrimary),
         ),
       ),
@@ -274,10 +266,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // =======================
-  // ADD API USER
+  // ADD USER DIALOG
   // =======================
   void _showAddDialog(BuildContext context) {
-    final userVM = Provider.of<UserViewModel>(context, listen: false);
+    final userVM = context.read<UserViewModel>();
     final nameController = TextEditingController();
     final emailController = TextEditingController();
 
@@ -318,9 +310,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // =======================
-  // EDIT API USER
-  // =======================
   void _showEditApiDialog(
     BuildContext context,
     UserViewModel userVM,
@@ -369,9 +358,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // =======================
-  // EDIT REGISTERED USER
-  // =======================
   void _showEditRegisteredDialog(
     BuildContext context,
     UserViewModel userVM,
