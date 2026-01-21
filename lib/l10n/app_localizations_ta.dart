@@ -24,7 +24,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get passwordRequired => 'கடவுச்சொல் அவசியம்';
 
   @override
-  String get invalidEmail => 'தவறான மின்னஞ்சல் வடிவம்';
+  String get invalidEmail => 'சரியான மின்னஞ்சலை உள்ளிடவும்';
 
   @override
   String get passwordTooShort => 'கடவுச்சொல் குறைந்தது 6 எழுத்துகள் இருக்க வேண்டும்';
@@ -75,8 +75,86 @@ class AppLocalizationsTa extends AppLocalizations {
   String get cleanArchitecture => 'சுத்தமான MVVM கட்டமைப்பு';
 
   @override
-  String get trustText => 'பாதுகாப்பு • வேகம் • Firebase Auth';
+  String get trustText => 'பாதுகாப்பு • வேகம் • Firebase அங்கீகாரம்';
 
   @override
   String get forceCrash => 'கட்டாயக் கோளாறு';
+
+  @override
+  String get dashboard => 'டாஷ்போர்டு';
+
+  @override
+  String get users => 'பயனர்கள்';
+
+  @override
+  String get logout => 'வெளியேறு';
+
+  @override
+  String get addUser => 'பயனரை சேர்க்க';
+
+  @override
+  String get editUser => 'பயனரை திருத்த';
+
+  @override
+  String get editRegisteredUser => 'பதிவு செய்யப்பட்ட பயனர்';
+
+  @override
+  String get deleteUser => 'பயனரை நீக்கு';
+
+  @override
+  String get deleteConfirmation => 'இந்த பயனரை நீக்க விரும்புகிறீர்களா?';
+
+  @override
+  String get cancel => 'ரத்து';
+
+  @override
+  String get add => 'சேர்க்க';
+
+  @override
+  String get update => 'புதுப்பிக்க';
+
+  @override
+  String get delete => 'நீக்கு';
+
+  @override
+  String get usernameLabel => 'பயனர் பெயர்';
+
+  @override
+  String get usernameHint => 'பயனர் பெயரை உள்ளிடவும்';
+
+  @override
+  String get emailHint => 'மின்னஞ்சல் முகவரியை உள்ளிடவும்';
+
+  @override
+  String get username => 'பயனர் பெயர்';
+
+  @override
+  String get email => 'மின்னஞ்சல்';
+
+  @override
+  String get password => 'கடவுச்சொல்';
+
+  @override
+  String get confirmPassword => 'கடவுச்சொல்லை உறுதிப்படுத்தவும்';
+
+  @override
+  String get registrationSuccessful => 'பதிவு வெற்றிகரமாக முடிந்தது';
+
+  @override
+  String get usernameRequired => 'பயனர் பெயர் அவசியம்';
+
+  @override
+  String get usernameMinLength => 'குறைந்தது 3 எழுத்துகள் தேவை';
+
+  @override
+  String get passwordLength => '6–20 எழுத்துகள் தேவை';
+
+  @override
+  String get passwordStrength => 'ஒரு பெரிய எழுத்து, சிறிய எழுத்து, எண் மற்றும் சிறப்பு எழுத்து தேவை';
+
+  @override
+  String get passwordMismatch => 'கடவுச்சொற்கள் பொருந்தவில்லை';
+
+  @override
+  String get errorGeneric => 'ஏதோ பிழை ஏற்பட்டுள்ளது';
 }

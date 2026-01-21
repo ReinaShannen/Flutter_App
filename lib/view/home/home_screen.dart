@@ -5,8 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/theme_provider.dart';
 import '../../core/localization/locale_provider.dart';
-import '../../l10n/app_localizations.dart';
-
+import '../../core/extensions/context_extensions.dart'; 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -28,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.read<ThemeProvider>();
-    final l10n = AppLocalizations.of(context)!;
 
     final bgColor = Theme.of(context).colorScheme.background;
     final textColor = Theme.of(context).colorScheme.onBackground;
@@ -54,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      l10n.profileManager,
+                      context.l10n.profileManager,
                       style: TextStyle(
                         color: textColor,
                         fontSize: 18,
@@ -119,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         duration: const Duration(milliseconds: 800),
                         opacity: _animate ? 1 : 0,
                         child: Text(
-                          l10n.manageUsers,
+                          context.l10n.manageUsers,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 30,
@@ -135,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         duration: const Duration(milliseconds: 900),
                         opacity: _animate ? 1 : 0,
                         child: Text(
-                          l10n.homeSubtitle,
+                          context.l10n.homeSubtitle,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 15,
@@ -151,17 +149,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           FeatureItem(
                             icon: Icons.lock_outline,
-                            text: l10n.secureAuth,
+                            text: context.l10n.secureAuth,
                           ),
                           const SizedBox(height: 14),
                           FeatureItem(
                             icon: Icons.people_outline,
-                            text: l10n.manageUsersRealtime,
+                            text: context.l10n.manageUsersRealtime,
                           ),
                           const SizedBox(height: 14),
                           FeatureItem(
                             icon: Icons.layers_outlined,
-                            text: l10n.cleanArchitecture,
+                            text: context.l10n.cleanArchitecture,
                           ),
                         ],
                       ),
@@ -170,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       _actionButton(
                         context,
-                        text: l10n.login,
+                        text: context.l10n.login,
                         color: primaryColor,
                         onTap: () =>
                             Navigator.pushNamed(context, '/login'),
@@ -178,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 16),
                       _actionButton(
                         context,
-                        text: l10n.register,
+                        text: context.l10n.register,
                         color: primaryColor,
                         onTap: () =>
                             Navigator.pushNamed(context, '/register'),
@@ -186,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 16),
                       _actionButton(
                         context,
-                        text: l10n.forceCrash,
+                        text: context.l10n.forceCrash,
                         color: Colors.red,
                         onTap: () {
                           FirebaseCrashlytics.instance.crash();
@@ -196,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 24),
 
                       Text(
-                        l10n.trustText,
+                        context.l10n.trustText,
                         style: TextStyle(
                           fontSize: 12,
                           color: textColor.withOpacity(0.6),

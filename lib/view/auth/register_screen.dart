@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodel/auth_viewmodel.dart';
+import '../../core/extensions/context_extensions.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
@@ -10,6 +11,7 @@ class RegisterScreen extends StatelessWidget {
     final authVM = Provider.of<AuthViewModel>(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = context.l10n;
 
     // 🔹 Regex patterns
     final RegExp emailRegex =
@@ -22,7 +24,7 @@ class RegisterScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Register'),
+        title: Text(l10n.register),
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: colorScheme.onSurface,
@@ -67,7 +69,8 @@ class RegisterScreen extends StatelessWidget {
                               ? Icon(
                                   Icons.person,
                                   size: 55,
-                                  color: colorScheme.onSurface.withOpacity(0.6),
+                                  color:
+                                      colorScheme.onSurface.withOpacity(0.6),
                                 )
                               : null,
                         ),
@@ -95,17 +98,17 @@ class RegisterScreen extends StatelessWidget {
                     // 🔹 Username
                     TextFormField(
                       controller: authVM.usernameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.username,
+                        border: const OutlineInputBorder(),
                         errorMaxLines: 2,
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Username is required';
+                          return l10n.usernameRequired;
                         }
                         if (value.trim().length < 3) {
-                          return 'Minimum 3 characters required';
+                          return l10n.usernameMinLength;
                         }
                         return null;
                       },
@@ -117,17 +120,17 @@ class RegisterScreen extends StatelessWidget {
                     TextFormField(
                       controller: authVM.emailController,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.email,
+                        border: const OutlineInputBorder(),
                         errorMaxLines: 2,
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Email is required';
+                          return l10n.emailRequired;
                         }
                         if (!emailRegex.hasMatch(value.trim())) {
-                          return 'Enter a valid email address';
+                          return l10n.invalidEmail;
                         }
                         return null;
                       },
@@ -139,20 +142,20 @@ class RegisterScreen extends StatelessWidget {
                     TextFormField(
                       controller: authVM.passwordController,
                       obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.password,
+                        border: const OutlineInputBorder(),
                         errorMaxLines: 2,
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Password is required';
+                          return l10n.passwordRequired;
                         }
                         if (value.length < 6 || value.length > 20) {
-                          return '6–20 characters required';
+                          return l10n.passwordLength;
                         }
                         if (!passwordRegex.hasMatch(value)) {
-                          return 'Use at least 1 upper, lower, number & special character';
+                          return l10n.passwordStrength;
                         }
                         return null;
                       },
@@ -164,9 +167,9 @@ class RegisterScreen extends StatelessWidget {
                     TextFormField(
                       controller: authVM.confirmPasswordController,
                       obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Confirm Password',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.confirmPassword,
+                        border: const OutlineInputBorder(),
                         errorMaxLines: 2,
                       ),
                       validator: (value) {
@@ -174,7 +177,7 @@ class RegisterScreen extends StatelessWidget {
                           return null;
                         }
                         if (value != authVM.passwordController.text) {
-                          return 'Passwords do not match';
+                          return l10n.passwordMismatch;
                         }
                         return null;
                       },
@@ -208,14 +211,16 @@ class RegisterScreen extends StatelessWidget {
                                       context, '/dashboard');
 
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Registration successful'),
+                                    SnackBar(
+                                      content:
+                                          Text(l10n.registrationSuccessful),
                                     ),
                                   );
                                 } else if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(error ?? 'Error'),
+                                      content:
+                                          Text(error ?? l10n.errorGeneric),
                                     ),
                                   );
                                 }
@@ -224,7 +229,7 @@ class RegisterScreen extends StatelessWidget {
                             ? CircularProgressIndicator(
                                 color: colorScheme.onPrimary,
                               )
-                            : const Text('REGISTER'),
+                            : Text(l10n.register),
                       ),
                     ),
                   ],

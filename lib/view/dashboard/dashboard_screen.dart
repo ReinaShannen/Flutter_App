@@ -1,13 +1,16 @@
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/extensions/context_extensions.dart';
+import '../../core/utils/image_utils.dart';
+import '../../core/widgets /app_loader.dart';
 import '../../core/widgets /logout_dialog.dart';
 import '../../viewmodel/user_viewmodel.dart';
+import '../dashboard/dashboard_actions.dart';
+import 'widgets/dashboard_user_card.dart';
+import '../../model/dashboard_user.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -17,22 +20,20 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  String? profileImageBase64;
+  /// 🔹 Cache decoded image to prevent blinking
+  MemoryImage? profileImage;
   String? username;
 
   @override
   void initState() {
     super.initState();
-
     Future.microtask(() {
-      Provider.of<UserViewModel>(context, listen: false).loadAllUsers();
+      context.read<UserViewModel>().loadAllUsers();
       _loadProfileData();
     });
   }
 
-  // =======================
-  // LOAD LOGGED IN USER PROFILE
-  // =======================
+  /// Loads logged-in user's profile info ONCE
   Future<void> _loadProfileData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -42,366 +43,133 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .doc(user.uid)
         .get();
 
+    if (!mounted) return;
+
     if (doc.exists) {
+      final base64 = doc.data()?['profileImageBase64'];
+
       setState(() {
-        profileImageBase64 = doc.data()?['profileImageBase64'];
         username = doc.data()?['username'];
+        profileImage = base64 != null && base64.isNotEmpty
+            ? MemoryImage(ImageUtils.decodeBase64(base64))
+            : null;
       });
     }
   }
 
-  Uint8List decodeBase64Image(String base64String) {
-    final cleanedBase64 = base64String.contains(',')
-        ? base64String.split(',').last
-        : base64String;
-    return base64Decode(cleanedBase64);
-  }
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final currentUser = FirebaseAuth.instance.currentUser;
 
-  // USER ACTION BOTTOM SHEET
-
-  void _showUserActionBottomSheet(
-    BuildContext context,
-    UserViewModel userVM,
-    dynamic user,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade400,
-                  borderRadius: BorderRadius.circular(2),
+    return Scaffold(
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              // 🔹 APP BAR + PROFILE (NO BLINKING)
+              SliverAppBar(
+                pinned: true,
+                expandedHeight: 220,
+                title: Text(context.l10n.dashboard),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.logout),
+                    onPressed: () => LogoutDialog.show(context),
+                  ),
+                ],
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    padding: const EdgeInsets.only(top: 90),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(24),
+                        bottomRight: Radius.circular(24),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundImage: profileImage,
+                          child: profileImage == null
+                              ? const Icon(Icons.person, size: 40)
+                              : null,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          username ?? '',
+                          style: textTheme.titleMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          currentUser?.email ?? '',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text('Edit User'),
-                onTap: () {
-                  Navigator.pop(context);
-                  if (user.isRegistered) {
-                    _showEditRegisteredDialog(
-                      context,
-                      userVM,
-                      user.id,
-                      user.name,
-                      user.email,
-                    );
-                  } else {
-                    _showEditApiDialog(
-                      context,
-                      userVM,
-                      int.parse(user.id),
-                      user.name,
-                      user.email,
-                    );
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Delete User'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showDeleteConfirmation(context, userVM, user);
+
+              // 🔹 USERS GRID (Selector – no full rebuild)
+              Selector<UserViewModel, List<DashboardUser>>(
+                selector: (_, vm) => vm.combinedUsers,
+                builder: (_, users, __) {
+                  return SliverPadding(
+                    padding: const EdgeInsets.all(16),
+                    sliver: SliverGrid(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final user = users[index];
+                          return DashboardUserCard(
+                            user: user,
+                            onLongPress: () {
+                              DashboardActions.showUserActionBottomSheet(
+                                context,
+                                context.read<UserViewModel>(),
+                                user,
+                              );
+                            },
+                          );
+                        },
+                        childCount: users.length,
+                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 0.85,
+                      ),
+                    ),
+                  );
                 },
               ),
             ],
           ),
-        );
-      },
-    );
-  }
 
-  
-  // DELETE CONFIRMATION DIALOG 
-
-  void _showDeleteConfirmation(
-    BuildContext context,
-    UserViewModel userVM,
-    dynamic user,
-  ) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete User'),
-        content: const Text(
-          'Are you sure you want to delete this user? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              Navigator.pop(context); 
-
-              if (user.isRegistered) {
-                userVM.deleteRegisteredUser(user.id);
-              } else {
-                userVM.deleteUser(int.parse(user.id));
-              }
+          // 🔹 LOADER (initial + action loading)
+          Selector<UserViewModel, bool>(
+            selector: (_, vm) =>
+                vm.isInitialLoading || vm.isActionLoading,
+            builder: (_, isLoading, __) {
+              if (!isLoading) return const SizedBox.shrink();
+              return const AppLoader();
             },
-            child: const Text('Delete'),
           ),
         ],
       ),
-    );
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return WillPopScope(
-      onWillPop: () async {
-        SystemNavigator.pop();
-        return false;
-      },
-      child: Scaffold(
-        backgroundColor: colorScheme.surface,
-        appBar: AppBar(
-          backgroundColor: colorScheme.primary,
-          title: Text('Dashboard',
-              style: TextStyle(color: colorScheme.onPrimary)),
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              icon: Icon(Icons.logout, color: colorScheme.onPrimary),
-              onPressed: () => LogoutDialog.show(context),
-            ),
-          ],
-        ),
-        body: Consumer<UserViewModel>(
-          builder: (context, userVM, _) {
-            if (userVM.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            return GridView.builder(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              itemCount: userVM.combinedUsers.length,
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.85,
-              ),
-              itemBuilder: (context, index) {
-                final user = userVM.combinedUsers[index];
-
-                return GestureDetector(
-                  onLongPress: () =>
-                      _showUserActionBottomSheet(context, userVM, user),
-                  child: Card(
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 28,
-                            backgroundColor: colorScheme.primary,
-                            backgroundImage: user.profileImageBase64 != null &&
-                                    user.profileImageBase64!.isNotEmpty
-                                ? MemoryImage(
-                                    base64Decode(user.profileImageBase64!))
-                                : null,
-                            child: user.profileImageBase64 == null ||
-                                    user.profileImageBase64!.isEmpty
-                                ? Icon(Icons.person,
-                                    color: colorScheme.onPrimary)
-                                : null,
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            user.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: textTheme.titleSmall
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            user.email,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: colorScheme.primary,
-          onPressed: () => _showAddDialog(context),
-          child: Icon(Icons.add, color: colorScheme.onPrimary),
-        ),
-      ),
-    );
-  }
-
-  // =======================
-  // ADD USER DIALOG
-  // =======================
-  void _showAddDialog(BuildContext context) {
-    final userVM = context.read<UserViewModel>();
-    final nameController = TextEditingController();
-    final emailController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Add User'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Username'),
-            ),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await userVM.createUser(
-                nameController.text.trim(),
-                emailController.text.trim(),
-              );
-              Navigator.pop(context);
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditApiDialog(
-    BuildContext context,
-    UserViewModel userVM,
-    int id,
-    String currentName,
-    String currentEmail,
-  ) {
-    final nameController = TextEditingController(text: currentName);
-    final emailController = TextEditingController(text: currentEmail);
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Edit User'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Username'),
-            ),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await userVM.updateUser(
-                id,
-                nameController.text.trim(),
-                emailController.text.trim(),
-              );
-              Navigator.pop(context);
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditRegisteredDialog(
-    BuildContext context,
-    UserViewModel userVM,
-    String uid,
-    String currentName,
-    String currentEmail,
-  ) {
-    final nameController = TextEditingController(text: currentName);
-    final emailController = TextEditingController(text: currentEmail);
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Edit Registered User'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Username'),
-            ),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await userVM.updateRegisteredUser(
-                uid,
-                nameController.text.trim(),
-                emailController.text.trim(),
-              );
-              Navigator.pop(context);
-            },
-            child: const Text('Update'),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => DashboardActions.showAddDialog(context),
+        child: const Icon(Icons.add),
       ),
     );
   }

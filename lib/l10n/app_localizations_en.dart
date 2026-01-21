@@ -24,7 +24,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwordRequired => 'Password is required';
 
   @override
-  String get invalidEmail => 'Invalid email format';
+  String get invalidEmail => 'Enter a valid email address';
 
   @override
   String get passwordTooShort => 'Password must be at least 6 characters';
@@ -54,7 +54,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dontHaveAccount => 'Don’t have an account?';
 
   @override
-  String get register => 'REGISTER';
+  String get register => 'Register';
 
   @override
   String get profileManager => 'Profile Manager';
@@ -79,4 +79,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forceCrash => 'FORCE CRASH';
+
+  @override
+  String get dashboard => 'Dashboard';
+
+  @override
+  String get users => 'Users';
+
+  @override
+  String get logout => 'Logout';
+
+  @override
+  String get addUser => 'Add User';
+
+  @override
+  String get editUser => 'Edit User';
+
+  @override
+  String get editRegisteredUser => 'Edit Registered User';
+
+  @override
+  String get deleteUser => 'Delete User';
+
+  @override
+  String get deleteConfirmation => 'Are you sure you want to delete this user?';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get update => 'Update';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get usernameLabel => 'Username';
+
+  @override
+  String get usernameHint => 'Enter username';
+
+  @override
+  String get emailHint => 'Enter email address';
+
+  @override
+  String get username => 'Username';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get confirmPassword => 'Confirm Password';
+
+  @override
+  String get registrationSuccessful => 'Registration successful';
+
+  @override
+  String get usernameRequired => 'Username is required';
+
+  @override
+  String get usernameMinLength => 'Minimum 3 characters required';
+
+  @override
+  String get passwordLength => '6–20 characters required';
+
+  @override
+  String get passwordStrength => 'Use at least 1 upper, lower, number & special character';
+
+  @override
+  String get passwordMismatch => 'Passwords do not match';
+
+  @override
+  String get errorGeneric => 'Something went wrong';
 }
