@@ -54,9 +54,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dontHaveAccount => 'Don’t have an account?';
 
   @override
-  String get register => 'Register';
-
-  @override
   String get profileManager => 'Profile Manager';
 
   @override
@@ -76,6 +73,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trustText => 'Secure • Fast • Firebase Auth';
+
+  @override
+  String get register => 'Register';
 
   @override
   String get forceCrash => 'FORCE CRASH';
@@ -157,4 +157,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorGeneric => 'Something went wrong';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account?';
 }

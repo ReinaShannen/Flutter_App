@@ -20,7 +20,6 @@
   "emailLabel": "Email",
   "passwordLabel": "Password",
   "dontHaveAccount": "Don’t have an account?",
-  "register": "Register",
 
 
   "profileManager": "Profile Manager",
@@ -76,7 +75,13 @@
 
   "passwordMismatch": "Passwords do not match",
 
-  "errorGeneric": "Something went wrong"
+  "errorGeneric": "Something went wrong",
+
+
+  "alreadyHaveAccount": "Already have an account?"
+
+
+
 }
 
 

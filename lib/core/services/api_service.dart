@@ -64,8 +64,11 @@ class ApiService {
         'email': email,
       }),
     );
+    print("INSIDE API UPDATE");
 
     if (response.statusCode == 200) {
+          print("STAUS 200-SUCCESS");
+
 
         _analytics.logEvent(
         name: 'update_user_success',

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/extensions/context_extensions.dart';
-import '../../core/utils/image_utils.dart';
 import '../../core/widgets /app_loader.dart';
 import '../../core/widgets /logout_dialog.dart';
 import '../../viewmodel/user_viewmodel.dart';
@@ -20,21 +19,30 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  /// 🔹 Cache decoded image to prevent blinking
-  MemoryImage? profileImage;
+  String? profileImageUrl;
   String? username;
+
+  bool _profileLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      context.read<UserViewModel>().loadAllUsers();
+
+    Future.microtask(() async {
+      final vm = context.read<UserViewModel>();
+
+      // 🔴 RESTORE ORIGINAL FLOW (VERY IMPORTANT).   
+      await vm.loadAllUsers();      // API → Firestore
+      await vm.loadAllUsers();   // Firestore → UI
+
       _loadProfileData();
     });
   }
 
   /// Loads logged-in user's profile info ONCE
   Future<void> _loadProfileData() async {
+    if (_profileLoaded) return;
+
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
@@ -46,13 +54,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (!mounted) return;
 
     if (doc.exists) {
-      final base64 = doc.data()?['profileImageBase64'];
-
       setState(() {
         username = doc.data()?['username'];
-        profileImage = base64 != null && base64.isNotEmpty
-            ? MemoryImage(ImageUtils.decodeBase64(base64))
-            : null;
+        profileImageUrl = doc.data()?['profileImageUrl'];
+        _profileLoaded = true;
       });
     }
   }
@@ -68,7 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           CustomScrollView(
             slivers: [
-              // 🔹 APP BAR + PROFILE (NO BLINKING)
+              // 🔹 APP BAR + PROFILE
               SliverAppBar(
                 pinned: true,
                 expandedHeight: 220,
@@ -92,11 +97,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Column(
                       children: [
                         CircleAvatar(
-                          radius: 40,
-                          backgroundImage: profileImage,
-                          child: profileImage == null
-                              ? const Icon(Icons.person, size: 40)
-                              : null,
+                          radius: 30,
+                          backgroundColor: Colors.grey[200],
+                          child: ClipOval(
+                            child: profileImageUrl != null &&
+                                    profileImageUrl!.isNotEmpty
+                                ? Image.network(
+                                    profileImageUrl!,
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                    gaplessPlayback: true,
+                                  )
+                                : const Icon(Icons.person, size: 30),
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -118,7 +132,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
 
-              // 🔹 USERS GRID (Selector – no full rebuild)
+              // 🔹 USERS GRID (SMOOTH, NO FULL REBUILD)
               Selector<UserViewModel, List<DashboardUser>>(
                 selector: (_, vm) => vm.combinedUsers,
                 builder: (_, users, __) {
@@ -129,6 +143,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         (context, index) {
                           final user = users[index];
                           return DashboardUserCard(
+                            key: ValueKey(user.id), // ⭐ VERY IMPORTANT
                             user: user,
                             onLongPress: () {
                               DashboardActions.showUserActionBottomSheet(
@@ -155,10 +170,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
 
-          // 🔹 LOADER (initial + action loading)
+          // 🔹 GLOBAL LOADER (FIXED FOR YOUR ViewModel)
           Selector<UserViewModel, bool>(
-            selector: (_, vm) =>
-                vm.isInitialLoading || vm.isActionLoading,
+            selector: (_, vm) => vm.isInitialLoading || vm.isActionLoading,
             builder: (_, isLoading, __) {
               if (!isLoading) return const SizedBox.shrink();
               return const AppLoader();

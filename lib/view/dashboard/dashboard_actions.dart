@@ -25,6 +25,8 @@ class DashboardActions {
               leading: const Icon(Icons.edit),
               title: Text(context.l10n.editUser),
               onTap: () {
+              print("Reg user DIALOG,${user.isRegistered}");
+
                 Navigator.pop(context);
                 if (user.isRegistered) {
                   showEditRegisteredDialog(
@@ -84,7 +86,8 @@ class DashboardActions {
               if (user.isRegistered) {
                 userVM.deleteRegisteredUser(user.id);
               } else {
-                userVM.deleteUser(int.parse(user.id));
+         userVM.deleteUser(user.id);
+
               }
             },
             child: Text(context.l10n.delete),
@@ -261,7 +264,7 @@ static void showEditRegisteredDialog(
           },
           child: Text(context.l10n.update),
         ),
-      ],
+      ],  
     ),
   );
 }

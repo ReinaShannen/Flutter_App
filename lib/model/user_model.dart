@@ -1,5 +1,5 @@
 class UserModel {
-  final String id; 
+  final int id; 
   final String name;
   final String email;
   final String? profileImageBase64; 
@@ -16,7 +16,7 @@ class UserModel {
   // 🔹 From API
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'].toString(),
+      id: json['id'],
       name: json['name'],
       email: json['email'],
       isRegistered: false,
@@ -24,7 +24,7 @@ class UserModel {
   }
 
   //  From Firestore registered users
-  factory UserModel.fromFirestore(String docId, Map<String, dynamic> json) {
+  factory UserModel.fromFirestore(int docId, Map<String, dynamic> json) {
     return UserModel(
       id: docId,
       name: json['username'] ?? '',

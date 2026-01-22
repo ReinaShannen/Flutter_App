@@ -185,12 +185,6 @@ abstract class AppLocalizations {
   /// **'Don’t have an account?'**
   String get dontHaveAccount;
 
-  /// No description provided for @register.
-  ///
-  /// In en, this message translates to:
-  /// **'Register'**
-  String get register;
-
   /// No description provided for @profileManager.
   ///
   /// In en, this message translates to:
@@ -232,6 +226,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Secure • Fast • Firebase Auth'**
   String get trustText;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get register;
 
   /// No description provided for @forceCrash.
   ///
@@ -394,6 +394,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong'**
   String get errorGeneric;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccount;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

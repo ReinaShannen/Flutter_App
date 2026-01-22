@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../view/splash/splash_screen.dart';
 import '../view/home/home_screen.dart';
-import '../view/auth/login_screen.dart';
-import '../view/auth/register_screen.dart';
+import '../view/auth/login/login_screen.dart';
+import '../view/auth/register/register_screen.dart';
 import '../view/dashboard/dashboard_screen.dart';
 
 class AppRoutes {

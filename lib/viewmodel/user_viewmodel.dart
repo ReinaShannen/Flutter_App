@@ -70,55 +70,127 @@ class UserViewModel extends ChangeNotifier {
     }
   }
 
-  // =========================
-  // CREATE USER
-  // =========================
-  Future<void> createUser(String name, String email) async {
-    try {
-      isActionLoading = true;
-      notifyListeners();
+  // // =========================
+  // // CREATE USER
+  // // =========================
+  // Future<void> createUser(String name, String email) async {
+  //   try {
+  //     isActionLoading = true;
+  //     notifyListeners();
 
-      final UserModel user = await api.createUser(name, email);
+  //     final UserModel user = await api.createUser(name, email);
 
-      await _firestore
-          .collection('users_cache')
-          .doc(user.id.toString())
-          .set(user.toJson(), SetOptions(merge: true));
+  //     await _firestore
+  //         .collection('users_cache')
+  //         .doc(user.id.toString())
+  //         .set(user.toJson(), SetOptions(merge: true));
 
-      await loadAllUsers(silent: true);
-    } catch (e) {
-      debugPrint('CREATE USER ERROR: $e');
-      rethrow;
-    } finally {
-      isActionLoading = false;
-      notifyListeners();
-    }
+  //     await loadAllUsers(silent: true);
+  //   } catch (e) {
+  //     debugPrint('CREATE USER ERROR: $e');
+  //     rethrow;
+  //   } finally {
+  //     isActionLoading = false;
+  //     notifyListeners();
+  //   }
+  // }
+
+  //------------------------------------------------------------------------
+
+  // // =========================
+  // // UPDATE API USER
+  // // =========================
+  // Future<void> updateUser(int id, String name, String email) async {
+  //   try {
+  //     isActionLoading = true;
+  //     notifyListeners();
+  //     print("FUNCTION START");
+     
+
+  //     await api.updateUser(id, name, email);
+  //     print("FUNCTION INSIDE START");
+      
+
+  //     await _firestore
+  //         .collection('users_cache')
+  //         .doc(id.toString())
+  //         .update({'name': name, 'email': email});
+
+  //     await loadAllUsers(silent: true);
+  //   } catch (e) {
+  //     debugPrint('UPDATE USER ERROR: $e');
+  //     rethrow;
+  //   } finally {
+  //     isActionLoading = false;
+  //     notifyListeners();
+      
+  //   }
+    
+  // }
+////-----------------------------------------------------------------------
+///
+///// =========================
+// CREATE USER  (🔥 FIXED — FIRESTORE-FIRST ID)
+// =========================
+Future<void> createUser(String name, String email) async {
+  try {
+    isActionLoading = true;
+    notifyListeners();
+
+    // Keep API call (for consistency/logging if you want)
+    final UserModel user = await api.createUser(name, email);
+
+    // 🔑 Let Firestore generate UNIQUE doc ID
+    await _firestore.collection('users_cache').add({
+      'apiId': user.id, // store API id as reference ONLY
+      'name': name,
+      'email': email,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    await loadAllUsers(silent: true);
+  } catch (e) {
+    debugPrint('CREATE USER ERROR: $e');
+    rethrow;
+  } finally {
+    isActionLoading = false;
+    notifyListeners();
   }
+}
+
+
 
   // =========================
-  // UPDATE API USER
-  // =========================
-  Future<void> updateUser(int id, String name, String email) async {
-    try {
-      isActionLoading = true;
-      notifyListeners();
+// UPDATE USER (FIRESTORE ONLY)
+// =========================
+Future<void> updateUser(int id, String name, String email) async {
+  try {
+    isActionLoading = true;
+    notifyListeners();
 
-      await api.updateUser(id, name, email);
+    debugPrint('Updating user in users_cache ONLY');
 
-      await _firestore
-          .collection('users_cache')
-          .doc(id.toString())
-          .update({'name': name, 'email': email});
 
-      await loadAllUsers(silent: true);
-    } catch (e) {
-      debugPrint('UPDATE USER ERROR: $e');
-      rethrow;
-    } finally {
-      isActionLoading = false;
-      notifyListeners();
-    }
+
+    
+    await _firestore
+        .collection('users_cache')
+        .doc(id.toString())
+        .update({
+      'name': name,
+      'email': email,
+    });
+
+    await loadAllUsers(silent: true);
+  } catch (e) {
+    debugPrint('UPDATE USER ERROR (FIRESTORE): $e');
+    rethrow;
+  } finally {
+    isActionLoading = false;
+    notifyListeners();
   }
+}
+
 
   // =========================
   // DELETE API USER

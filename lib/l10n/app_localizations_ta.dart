@@ -54,9 +54,6 @@ class AppLocalizationsTa extends AppLocalizations {
   String get dontHaveAccount => 'கணக்கு இல்லையா?';
 
   @override
-  String get register => 'பதிவு';
-
-  @override
   String get profileManager => 'சுயவிவர மேலாளர்';
 
   @override
@@ -76,6 +73,9 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get trustText => 'பாதுகாப்பு • வேகம் • Firebase அங்கீகாரம்';
+
+  @override
+  String get register => 'பதிவு';
 
   @override
   String get forceCrash => 'கட்டாயக் கோளாறு';
@@ -157,4 +157,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get errorGeneric => 'ஏதோ பிழை ஏற்பட்டுள்ளது';
+
+  @override
+  String get alreadyHaveAccount => 'ஏற்கனவே கணக்கு உள்ளதா?';
 }

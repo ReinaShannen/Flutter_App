@@ -22,6 +22,8 @@ import 'routes/app_routes.dart';
 
 import 'viewmodel/user_viewmodel.dart';
 import 'viewmodel/auth_viewmodel.dart';
+import 'view/auth/login/login_viewmodel.dart';
+
 
 import 'core/theme/theme_provider.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -71,7 +73,10 @@ void main() async {
           create: (_) => ThemeProvider(),
         ),
         ChangeNotifierProvider(
-          create: (_) => LocaleProvider(), )
+          create: (_) => LocaleProvider(), ),
+        ChangeNotifierProvider(
+          create: (_) => LoginViewModel(),
+        ),
 
       ],
       child: const MyApp(),
