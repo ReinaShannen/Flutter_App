@@ -76,7 +76,16 @@
   "passwordMismatch": "கடவுச்சொற்கள் பொருந்தவில்லை",
 
   "errorGeneric": "ஏதோ பிழை ஏற்பட்டுள்ளது",
-  "alreadyHaveAccount": "ஏற்கனவே கணக்கு உள்ளதா?"
+  "alreadyHaveAccount": "ஏற்கனவே கணக்கு உள்ளதா?",
+
+  "profileManager": "சுயவிவர நிர்வாகம்",
+  "profileManager": "சுயவிவர மேலாளர்",
+
+  "confirmLogoutTitle": "வெளியேறலை உறுதிப்படுத்தவும்",
+"confirmLogoutMessage": "நீங்கள் வெளியேற விரும்புகிறீர்களா?"
+
+
+
 }
 
 

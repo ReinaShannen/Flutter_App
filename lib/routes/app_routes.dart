@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../view/splash/splash_screen.dart';
-import '../view/home/home_screen.dart';
-import '../view/auth/login/login_screen.dart';
-import '../view/auth/register/register_screen.dart';
-import '../view/dashboard/dashboard_screen.dart';
+import '../pages/dashboard/view/dashboard_screen.dart';
+import '../pages/login_signup/view/login_screen.dart';
+import '../pages/login_signup/view/register_screen.dart';
+import '../pages/splash/splash_screen.dart';
+import '../pages/home/view/home_screen.dart';
 
 class AppRoutes {
   // 🔹 Route names (constants)

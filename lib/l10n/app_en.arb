@@ -78,7 +78,10 @@
   "errorGeneric": "Something went wrong",
 
 
-  "alreadyHaveAccount": "Already have an account?"
+  "alreadyHaveAccount": "Already have an account?",
+  "confirmLogoutTitle": "Confirm Logout",
+  "confirmLogoutMessage": "Are you sure you want to logout?"
+
 
 
 

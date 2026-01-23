@@ -160,4 +160,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alreadyHaveAccount => 'Already have an account?';
+
+  @override
+  String get confirmLogoutTitle => 'Confirm Logout';
+
+  @override
+  String get confirmLogoutMessage => 'Are you sure you want to logout?';
 }

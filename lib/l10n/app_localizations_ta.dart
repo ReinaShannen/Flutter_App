@@ -160,4 +160,10 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get alreadyHaveAccount => 'ஏற்கனவே கணக்கு உள்ளதா?';
+
+  @override
+  String get confirmLogoutTitle => 'வெளியேறலை உறுதிப்படுத்தவும்';
+
+  @override
+  String get confirmLogoutMessage => 'நீங்கள் வெளியேற விரும்புகிறீர்களா?';
 }

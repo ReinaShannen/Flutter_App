@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_app/core/services/api_service.dart';
+import 'package:flutter_app/pages/login_signup/view_model/login_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'core/storage/app_preferences.dart';
 import 'core/storage/pref_keys.dart';
@@ -20,9 +21,8 @@ import 'core/localization/locale_provider.dart';
 import 'firebase_options.dart';
 import 'routes/app_routes.dart';
 
-import 'viewmodel/user_viewmodel.dart';
-import 'viewmodel/auth_viewmodel.dart';
-import 'view/auth/login/login_viewmodel.dart';
+import 'pages/dashboard/view_model/user_viewmodel.dart';
+import 'pages/login_signup/view_model/auth_viewmodel.dart';
 
 
 import 'core/theme/theme_provider.dart';
